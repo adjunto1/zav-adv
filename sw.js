@@ -1,8 +1,14 @@
-const CACHE_NAME = 'zav-v1';
-const FILES = ['./index.html', './manifest.json'];
+const CACHE_NAME = 'zav-v2';
+const FILES = [
+  '/zav-adv/',
+  '/zav-adv/index.html',
+  '/zav-adv/manifest.json',
+  '/zav-adv/icons/icon-192.png',
+  '/zav-adv/icons/icon-512.png'
+];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)));
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES).catch(()=>{})));
   self.skipWaiting();
 });
 
@@ -15,6 +21,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html')))
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
