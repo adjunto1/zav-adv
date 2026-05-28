@@ -524,6 +524,16 @@ window.addEventListener('popstate', function(e){
 function iniciarApp(){
   window._currentPage = 'processos';
   history.replaceState({zav:'processos'},'',location.href);
+
+  // Reconecta quando app volta ao foco
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      if(unsubProcessos) unsubProcessos();
+      if(unsubDistribuir) unsubDistribuir();
+      if(unsubDespesas) unsubDespesas();
+      escutarDados();
+    }
+  });
   if(window.innerWidth>=600){
     document.getElementById('sidebar').style.display='flex';
     const main=document.querySelector('.main');
