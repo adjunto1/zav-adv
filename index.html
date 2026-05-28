@@ -525,13 +525,14 @@ function iniciarApp(){
   window._currentPage = 'processos';
   history.replaceState({zav:'processos'},'',location.href);
 
-  // Reconecta quando app volta ao foco
+  // Quando app volta ao foco, recarrega para reconectar Firebase
+  let appHidden = false;
   document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'visible'){
-      if(unsubProcessos) unsubProcessos();
-      if(unsubDistribuir) unsubDistribuir();
-      if(unsubDespesas) unsubDespesas();
-      escutarDados();
+    if(document.visibilityState === 'hidden'){
+      appHidden = true;
+    } else if(document.visibilityState === 'visible' && appHidden){
+      appHidden = false;
+      location.reload();
     }
   });
   if(window.innerWidth>=600){
