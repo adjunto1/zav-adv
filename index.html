@@ -405,16 +405,16 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
   history.replaceState({zav:'processos'}, '');
   history.pushState({zav:'processos'}, '');
 
-  // Recarrega quando app volta ao foco
+  // Recarrega quando app volta ao foco - múltiplos eventos para Android PWA
   let appHidden = false;
   document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'hidden'){
-      appHidden = true;
-    } else if(document.visibilityState === 'visible' && appHidden){
-      appHidden = false;
-      location.reload();
-    }
+    if(document.visibilityState === 'hidden') appHidden = true;
+    else if(appHidden){ appHidden = false; location.reload(); }
   });
+  window.addEventListener('pageshow', function(e){
+    if(e.persisted) location.reload();
+  });
+  window.addEventListener('resume', function(){ location.reload(); });
 
   window.addEventListener('popstate', function(e){
     // Sempre empurra um estado novo para nunca deixar o app fechar
