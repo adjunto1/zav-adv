@@ -408,8 +408,17 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
   // Recarrega quando app volta ao foco - múltiplos eventos para Android PWA
   let appHidden = false;
   document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'hidden') appHidden = true;
-    else if(appHidden){ appHidden = false; location.reload(); }
+    if(document.visibilityState === 'hidden'){
+      appHidden = true;
+      try{ if(window._unsub&&window._unsub.processos) window._unsub.processos(); }catch(e){}
+      try{ if(window._unsub&&window._unsub.distribuir) window._unsub.distribuir(); }catch(e){}
+      try{ if(window._unsub&&window._unsub.despesas) window._unsub.despesas(); }catch(e){}
+    } else if(appHidden){
+      appHidden = false;
+      setTimeout(()=>{
+        if(window._escutarDados) window._escutarDados();
+      }, 500);
+    }
   });
   window.addEventListener('pageshow', function(e){
     if(e.persisted) location.reload();
@@ -490,6 +499,7 @@ if(usuarioAtual){
 // ---- STATE ----
 let processos=[], distribuir=[], despesas=[], currentPage='processos', detalheId=null;
 let unsubProcessos, unsubDistribuir, unsubDespesas;
+window._unsub = { processos: null, distribuir: null, despesas: null };
 let navStack = ['processos'];
 
 function pushNav(page){
@@ -565,16 +575,21 @@ function escutarDados(){
     console.error('Erro processos:',err);
     document.getElementById('lista-processos').innerHTML='<div class="empty"><i class="ti ti-files"></i><div>Nenhum processo cadastrado</div></div>';
   });
+  window._unsub.processos = unsubProcessos;
 
   unsubDistribuir = onSnapshot(query(collection(db,'distribuir'),orderBy('criadoEm','desc')), snap=>{
     distribuir=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderDistribuir();
   }, err=>{ console.error('Erro distribuir:',err); renderDistribuir(); });
+  window._unsub.distribuir = unsubDistribuir;
 
   unsubDespesas = onSnapshot(query(collection(db,'despesas'),orderBy('criadoEm','desc')), snap=>{
     despesas=snap.docs.map(d=>({id:d.id,...d.data()}));
     if(currentPage==='financeiro') renderFinanceiro();
   }, err=>{ console.error('Erro despesas:',err); });
+  window._unsub.despesas = unsubDespesas;
+
+  window._escutarDados = escutarDados;
 }
 
 // ---- NAV ----
