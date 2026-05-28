@@ -434,7 +434,7 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbjThE2X1StVBZwLjmwYWioOIBTNNT3Q",
@@ -446,14 +446,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-let db;
-try {
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
-  });
-} catch(e) {
-  db = getFirestore(app);
-}
+const db = getFirestore(app);
 
 // ---- AUTH ----
 const USUARIOS = {Kleber:'zav123',Daniela:'zav123',Katiuce:'zav123'};
@@ -545,20 +538,32 @@ function iniciarApp(){
 }
 
 function escutarDados(){
+  const timeout = setTimeout(()=>{
+    document.getElementById('lista-processos').innerHTML='<div class="empty"><i class="ti ti-files"></i><div>Nenhum processo cadastrado</div></div>';
+    document.getElementById('lista-distribuir').innerHTML='<div class="empty"><i class="ti ti-inbox"></i><div>Nenhum processo aguardando</div></div>';
+  }, 5000);
+
   unsubProcessos = onSnapshot(query(collection(db,'processos'),orderBy('criadoEm','desc')), snap=>{
+    clearTimeout(timeout);
     processos=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderProcessos();
     atualizarMetricas();
     if(currentPage==='detalhe'&&detalheId) renderDetalhe(detalheId);
+  }, err=>{
+    clearTimeout(timeout);
+    console.error('Erro processos:',err);
+    document.getElementById('lista-processos').innerHTML='<div class="empty"><i class="ti ti-files"></i><div>Nenhum processo cadastrado</div></div>';
   });
+
   unsubDistribuir = onSnapshot(query(collection(db,'distribuir'),orderBy('criadoEm','desc')), snap=>{
     distribuir=snap.docs.map(d=>({id:d.id,...d.data()}));
     renderDistribuir();
-  });
+  }, err=>{ console.error('Erro distribuir:',err); renderDistribuir(); });
+
   unsubDespesas = onSnapshot(query(collection(db,'despesas'),orderBy('criadoEm','desc')), snap=>{
     despesas=snap.docs.map(d=>({id:d.id,...d.data()}));
     if(currentPage==='financeiro') renderFinanceiro();
-  });
+  }, err=>{ console.error('Erro despesas:',err); });
 }
 
 // ---- NAV ----
