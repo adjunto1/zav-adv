@@ -405,6 +405,17 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
   history.replaceState({zav:'processos'}, '');
   history.pushState({zav:'processos'}, '');
 
+  // Recarrega quando app volta ao foco
+  let appHidden = false;
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden'){
+      appHidden = true;
+    } else if(document.visibilityState === 'visible' && appHidden){
+      appHidden = false;
+      location.reload();
+    }
+  });
+
   window.addEventListener('popstate', function(e){
     // Sempre empurra um estado novo para nunca deixar o app fechar
     history.pushState({zav: window._currentPage||'processos'}, '');
@@ -524,17 +535,6 @@ window.addEventListener('popstate', function(e){
 function iniciarApp(){
   window._currentPage = 'processos';
   history.replaceState({zav:'processos'},'',location.href);
-
-  // Quando app volta ao foco, recarrega para reconectar Firebase
-  let appHidden = false;
-  document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'hidden'){
-      appHidden = true;
-    } else if(document.visibilityState === 'visible' && appHidden){
-      appHidden = false;
-      location.reload();
-    }
-  });
   if(window.innerWidth>=600){
     document.getElementById('sidebar').style.display='flex';
     const main=document.querySelector('.main');
