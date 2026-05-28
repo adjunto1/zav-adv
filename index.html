@@ -266,12 +266,12 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
       <div class="metric-card warn"><div class="metric-label">A Receber</div><div class="metric-val" id="m-pendente">R$ 0</div></div>
     </div>
     <div class="field" style="margin-bottom:12px"><input placeholder="Buscar processo, cliente..." id="busca-proc" oninput="renderProcessos()"></div>
-    <div id="lista-processos"><div class="loading"><i class="ti ti-loader"></i>Carregando...</div></div>
+    <div id="lista-processos"><div class="empty"><i class="ti ti-files"></i><div>Nenhum processo cadastrado</div></div></div>
   </div>
 
   <!-- DISTRIBUIR -->
   <div class="page" id="page-distribuir">
-    <div id="lista-distribuir"><div class="loading"><i class="ti ti-loader"></i>Carregando...</div></div>
+    <div id="lista-distribuir"><div class="empty"><i class="ti ti-inbox"></i><div>Nenhum processo aguardando</div></div></div>
   </div>
 
   <!-- FINANCEIRO -->
@@ -434,7 +434,7 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbjThE2X1StVBZwLjmwYWioOIBTNNT3Q",
@@ -447,6 +447,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Cache offline — carrega dados mesmo sem internet
+enableIndexedDbPersistence(db).catch(()=>{});
 
 // ---- AUTH ----
 const USUARIOS = {Kleber:'zav123',Daniela:'zav123',Katiuce:'zav123'};
