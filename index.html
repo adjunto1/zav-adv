@@ -434,7 +434,7 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbjThE2X1StVBZwLjmwYWioOIBTNNT3Q",
@@ -446,10 +446,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Cache offline — carrega dados mesmo sem internet
-enableIndexedDbPersistence(db).catch(()=>{});
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+  });
+} catch(e) {
+  db = getFirestore(app);
+}
 
 // ---- AUTH ----
 const USUARIOS = {Kleber:'zav123',Daniela:'zav123',Katiuce:'zav123'};
