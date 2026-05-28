@@ -398,6 +398,40 @@ td{padding:8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 </div>
 
 <!-- Firebase SDK -->
+<script>
+// Botão voltar Android — fora do módulo para garantir execução imediata
+(function(){
+  // Empurra estado inicial
+  history.replaceState({zav:'processos'}, '');
+  history.pushState({zav:'processos'}, '');
+
+  window.addEventListener('popstate', function(e){
+    // Sempre empurra um estado novo para nunca deixar o app fechar
+    history.pushState({zav: window._currentPage||'processos'}, '');
+
+    // Fecha drawer aberto se houver
+    const openDrw = document.querySelector('.overlay.open');
+    if(openDrw){ openDrw.classList.remove('open'); return; }
+
+    const page = window._currentPage || 'processos';
+
+    if(page === 'detalhe'){
+      if(window.showPage) window.showPage('processos');
+      return;
+    }
+    if(page === 'distribuir' || page === 'financeiro'){
+      if(window.showPage) window.showPage('processos');
+      return;
+    }
+    if(page === 'processos'){
+      if(confirm('Deseja sair do ZAV?')){
+        history.go(-history.length);
+      }
+      return;
+    }
+  });
+})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
@@ -488,7 +522,8 @@ window.addEventListener('popstate', function(e){
 });
 
 function iniciarApp(){
-  history.replaceState({page:'processos'},'',location.href);
+  window._currentPage = 'processos';
+  history.replaceState({zav:'processos'},'',location.href);
   if(window.innerWidth>=600){
     document.getElementById('sidebar').style.display='flex';
     const main=document.querySelector('.main');
@@ -521,6 +556,7 @@ function escutarDados(){
 
 // ---- NAV ----
 function _showPage(p, push=true){
+  window._currentPage = p;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.querySelectorAll('.nav-item,.sidebar-item').forEach(e=>e.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
@@ -536,6 +572,7 @@ function _showPage(p, push=true){
 window.showPage = function(p){ _showPage(p, true); }
 
 window.showDetalhe = function(id){
+  window._currentPage = 'detalhe';
   detalheId=id; renderDetalhe(id);
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.querySelectorAll('.nav-item,.sidebar-item').forEach(e=>e.classList.remove('active'));
