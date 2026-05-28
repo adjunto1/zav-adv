@@ -416,7 +416,7 @@ const db = getFirestore(app);
 
 // ---- AUTH ----
 const USUARIOS = {Kleber:'zav123',Daniela:'zav123',Katiuce:'zav123'};
-let usuarioAtual = sessionStorage.getItem('zav_user')||'';
+let usuarioAtual = localStorage.getItem('zav_user')||'';
 
 window.doLogin = function(){
   const u=document.getElementById('login-user').value;
@@ -424,7 +424,7 @@ window.doLogin = function(){
   if(!u||!s){document.getElementById('login-error').style.display='block';document.getElementById('login-error').textContent='Selecione o usuário e digite a senha.';return;}
   if(USUARIOS[u]!==s){document.getElementById('login-error').style.display='block';return;}
   usuarioAtual=u;
-  sessionStorage.setItem('zav_user',u);
+  localStorage.setItem('zav_user',u);
   document.getElementById('login-screen').style.display='none';
   document.getElementById('user-badge-top').textContent=u;
   document.getElementById('sidebar-user') && (document.getElementById('sidebar-user').textContent=u);
@@ -432,7 +432,7 @@ window.doLogin = function(){
 }
 
 window.logout = function(){
-  sessionStorage.removeItem('zav_user');
+  localStorage.removeItem('zav_user');
   location.reload();
 }
 
@@ -453,17 +453,38 @@ function pushNav(page){
 }
 
 window.addEventListener('popstate', function(e){
-  navStack.pop();
-  const prev = navStack[navStack.length-1]||'processos';
   // fechar drawer aberto se houver
-  const openDrawer = document.querySelector('.overlay.open');
-  if(openDrawer){ openDrawer.classList.remove('open'); history.pushState({page:currentPage},'',location.href); return; }
-  if(prev==='processos' && currentPage==='processos'){
-    if(confirm('Deseja sair do ZAV?')){ navStack=[]; history.go(-navStack.length-1); }
-    else { history.pushState({page:'processos'},'',location.href); navStack.push('processos'); }
+  const openDrw = document.querySelector('.overlay.open');
+  if(openDrw){
+    openDrw.classList.remove('open');
+    history.pushState({page:currentPage},'',location.href);
     return;
   }
-  _showPage(prev, false);
+  // se estiver no detalhe, volta para processos
+  if(currentPage==='detalhe'){
+    navStack = navStack.filter(p=>p!=='detalhe');
+    _showPage('processos', false);
+    history.pushState({page:'processos'},'',location.href);
+    return;
+  }
+  // se estiver em distribuir ou financeiro, volta para processos
+  if(currentPage==='distribuir'||currentPage==='financeiro'){
+    navStack = ['processos'];
+    _showPage('processos', false);
+    history.pushState({page:'processos'},'',location.href);
+    return;
+  }
+  // se já estiver na tela principal, pergunta se quer sair
+  if(currentPage==='processos'){
+    if(confirm('Deseja sair do ZAV?')){
+      // deixa fechar
+    } else {
+      history.pushState({page:'processos'},'',location.href);
+    }
+    return;
+  }
+  // fallback: empurra estado de volta
+  history.pushState({page:currentPage},'',location.href);
 });
 
 function iniciarApp(){
